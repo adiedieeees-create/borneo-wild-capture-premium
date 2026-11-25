@@ -93,7 +93,7 @@
     const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const plusDays=(date,n)=>{const x=new Date(date);x.setDate(x.getDate()+n);return x;};
     const iso=date=>[date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-");
-    const lastBookableDay=plusDays(today,29);
+    const lastBookableDay=plusDays(today,365);
     const todayKey=iso(today),lastBookableKey=iso(lastBookableDay);
     const availableMonths=[];
     for(let month=new Date(today.getFullYear(),today.getMonth(),1);month<=new Date(lastBookableDay.getFullYear(),lastBookableDay.getMonth(),1);month=new Date(month.getFullYear(),month.getMonth()+1,1)){
@@ -135,7 +135,7 @@
         const disabled=outsideRange||booked;
         const selected=key===start||key===end;
         const between=!!(start&&end&&key>start&&key<end);
-        const title=booked?"Already booked":(outsideRange?"Outside the 30-day booking window":"Choose this date");
+        const title=booked?"Already booked":(outsideRange?"Outside the 1-year booking window":"Choose this date");
         const dateLabel=date.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
         cells.push('<button type="button" class="tour-date-day'+(selected?' is-selected':'')+(between?' is-between':'')+(outsideRange?' is-outside-range':'')+(booked?' is-booked':'')+'" data-date="'+key+'" aria-label="'+dateLabel+(booked?', already booked':'')+(outsideRange?', outside booking window':'')+'" '+(disabled?'disabled aria-disabled="true" title="'+title+'"':'')+'><strong>'+day+'</strong></button>');
       }
@@ -143,7 +143,7 @@
       if(start&&!end)note="Start date selected: "+start+". Now choose an available end date.";
       if(invalid)note="That range overlaps an existing booking. Choose another end date or use Ask for Custom Date.";
       if(completed&&!invalid)note="Selected: "+start+" to "+end+". This range will be checked again when your enquiry is saved.";
-      tourCalendar.innerHTML='<div class="tour-calendar-controls"><label><span>Month</span><select data-calendar-month aria-label="Select calendar month">'+monthOptions+'</select></label><label><span>Year</span><select data-calendar-year aria-label="Select calendar year">'+yearOptions+'</select></label></div><p class="tour-calendar-title">Choose your dates · next 30 days</p><div class="tour-calendar-weekdays" aria-hidden="true">'+weekdayMarkup+'</div><div class="tour-calendar-grid">'+cells.join("")+'</div><p class="tour-calendar-note">'+note+' Only dates within the next 30 days can be selected; booked dates remain unavailable.</p>';
+      tourCalendar.innerHTML='<div class="tour-calendar-controls"><label><span>Month</span><select data-calendar-month aria-label="Select calendar month">'+monthOptions+'</select></label><label><span>Year</span><select data-calendar-year aria-label="Select calendar year">'+yearOptions+'</select></label></div><p class="tour-calendar-title">Choose your dates · next 12 months</p><div class="tour-calendar-weekdays" aria-hidden="true">'+weekdayMarkup+'</div><div class="tour-calendar-grid">'+cells.join("")+'</div><p class="tour-calendar-note">'+note+' Only dates within the next 12 months can be selected; booked dates remain unavailable.</p>';
       tourCalendar.querySelector("[data-calendar-month]")?.addEventListener("change",event=>{
         const [selectedYear,selectedMonth]=event.target.value.split("-").map(Number);
         viewYear=selectedYear;
