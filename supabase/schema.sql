@@ -39,7 +39,7 @@ alter table public.faqs enable row level security;
 
 -- Public visitors can submit booking enquiries; only the designated admin can read/update them.
 drop policy if exists "Public can submit booking enquiries" on public.bookings;
-create policy "Public can submit booking enquiries" on public.bookings for insert to anon, authenticated with check (true);
+create policy "Public can submit booking enquiries" on public.bookings for insert to anon, authenticated with check (status = 'new');
 drop policy if exists "Admins can read bookings" on public.bookings;
 create policy "Admins can read bookings" on public.bookings for select to authenticated
 using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'adie.malayan@gmail.com');
