@@ -77,5 +77,21 @@
       publicPackages.innerHTML=data.map(item=>'<article class="detail-card"><p class="kicker">'+escapePackage(item.duration)+'</p><h3>'+escapePackage(item.name)+'</h3><p>'+escapePackage(item.description)+'</p><p class="package-price-note">'+escapePackage(item.price_note)+'</p><div class="action-row"><a class="button button--gold" href="booking.html">Enquire about this trip ↗</a></div></article>').join("");
     });
   }
+
+  const tourCalendar=document.querySelector("[data-tour-calendar]");
+  if(tourCalendar&&window.supabase&&window.BWC_SUPABASE_URL&&window.BWC_SUPABASE_ANON_KEY){
+    const departureClient=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
+    const departureSelect=document.querySelector('#booking-form [name="departure_id"]');
+    const safe=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    departureClient.from("tour_departures").select("id,departure_date,capacity,booked_guests,note").eq("is_open",true).gte("departure_date",new Date().toISOString().slice(0,10)).order("departure_date",{ascending:true}).then(({data,error})=>{
+      if(error){tourCalendar.innerHTML='<p class="faq-load-message">Availability is temporarily unavailable. Please contact our team on WhatsApp.</p>';return;}
+      const available=(data||[]).filter(d=>d.capacity-d.booked_guests>0);
+      if(!available.length){tourCalendar.innerHTML='<p class="faq-load-message">No fixed departures are currently open. Please contact our team for upcoming dates.</p>';return;}
+      departureSelect.innerHTML='<option value="" disabled selected>Choose an available departure</option>'+available.map(d=>'<option value="'+safe(d.id)+'">'+safe(new Date(d.departure_date+"T00:00:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"}))+' · '+(d.capacity-d.booked_guests)+' seats left</option>').join("");
+      tourCalendar.innerHTML='<p class="tour-calendar-title">Upcoming departures</p><div class="tour-departure-grid">'+available.map(d=>'<button class="tour-departure" type="button" data-departure="'+safe(d.id)+'"><strong>'+safe(new Date(d.departure_date+"T00:00:00").toLocaleDateString(undefined,{day:"numeric",month:"short"}))+'</strong><span>'+safe(new Date(d.departure_date+"T00:00:00").toLocaleDateString(undefined,{weekday:"long",year:"numeric"}))+'</span><small>'+safe(d.capacity-d.booked_guests)+' seats remaining</small></button>').join("")+'</div><p class="tour-calendar-note">Seat availability is shared across all expedition packages. A place is secured only after the team confirms your booking.</p>';
+      tourCalendar.querySelectorAll("[data-departure]").forEach(button=>button.addEventListener("click",()=>{departureSelect.value=button.dataset.departure;tourCalendar.querySelectorAll(".tour-departure").forEach(x=>x.classList.toggle("is-selected",x===button));departureSelect.scrollIntoView({behavior:"smooth",block:"center"});}));
+      departureSelect.addEventListener("change",()=>tourCalendar.querySelectorAll(".tour-departure").forEach(x=>x.classList.toggle("is-selected",x.dataset.departure===departureSelect.value)));
+    });
+  }
   const year=document.querySelector("[data-current-year]");if(year)year.textContent=String(new Date().getFullYear());
 })();
