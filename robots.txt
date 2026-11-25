@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://adiedieeees-create.github.io/borneo-wild-capture-premium/sitemap.xml
