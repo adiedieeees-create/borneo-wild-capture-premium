@@ -40,7 +40,7 @@
           email:String(data.get("email")).trim(),
           phone:String(data.get("phone")||"").trim()||null,
           trip:String(data.get("trip")),
-          travel_date:String(data.get("date")||"")||null,
+          departure_id:String(data.get("departure_id")),\n          travel_date:null,
           guests:Number(data.get("guests")),
           travel_style:String(data.get("style")||"")||null,
           message:String(data.get("message")||"").trim()||null,
@@ -83,7 +83,7 @@
     const departureClient=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
     const departureSelect=document.querySelector('#booking-form [name="departure_id"]');
     const safe=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-    departureClient.from("tour_departures").select("id,departure_date,capacity,booked_guests,note").eq("is_open",true).gte("departure_date",new Date().toISOString().slice(0,10)).order("departure_date",{ascending:true}).then(({data,error})=>{
+    const localNow=new Date();const localToday=[localNow.getFullYear(),String(localNow.getMonth()+1).padStart(2,"0"),String(localNow.getDate()).padStart(2,"0")].join("-");\n    departureClient.from("tour_departures").select("id,departure_date,capacity,booked_guests,note").eq("is_open",true).gte("departure_date",localToday).order("departure_date",{ascending:true}).then(({data,error})=>{
       if(error){tourCalendar.innerHTML='<p class="faq-load-message">Availability is temporarily unavailable. Please contact our team on WhatsApp.</p>';return;}
       const available=(data||[]).filter(d=>d.capacity-d.booked_guests>0);
       if(!available.length){tourCalendar.innerHTML='<p class="faq-load-message">No fixed departures are currently open. Please contact our team for upcoming dates.</p>';return;}
