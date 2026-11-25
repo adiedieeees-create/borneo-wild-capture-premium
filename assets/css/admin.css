@@ -5,3 +5,94 @@
 #departure-form .check input{width:auto;margin:0}
 #departure-list .manage-item{align-items:center}
 #departure-list .manage-item p{margin:4px 0}
+
+
+/* Refined admin controls: understated, consistent and keyboard-friendly */
+button {
+  min-height: 38px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: 600 11px "DM Sans", sans-serif;
+  letter-spacing: .015em;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+button:focus-visible,
+.status-select:focus-visible {
+  outline: 2px solid #b9955a;
+  outline-offset: 3px;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+button.primary {
+  background: #173b2d;
+  border-color: #173b2d;
+  color: #f7f4ec;
+}
+button.primary:hover {
+  background: #204a38;
+  border-color: #204a38;
+  box-shadow: 0 3px 10px rgba(8, 30, 20, .1);
+}
+button.quiet {
+  background: #fbfaf6;
+  border-color: #d8ddd4;
+  color: #244333;
+}
+button.quiet:hover {
+  background: #f0eee6;
+  border-color: #bdc7bb;
+}
+.top-actions button.quiet {
+  background: rgba(255, 255, 255, .035);
+  border-color: rgba(255, 255, 255, .34);
+  color: #f4f1e9;
+}
+.top-actions button.quiet:hover {
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .62);
+}
+button.tab {
+  min-height: 39px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: #66756d;
+}
+button.tab:hover {
+  background: #f1efe8;
+  color: #294434;
+}
+button.tab.active {
+  background: #173b2d;
+  border-color: #173b2d;
+  color: #f7f4ec;
+}
+button.quiet.danger,
+button.danger {
+  background: #fcf7f5;
+  border-color: #e4c9c3;
+  color: #91483d;
+}
+button.quiet.danger:hover,
+button.danger:hover {
+  background: #f6ece9;
+  border-color: #d8b4ad;
+}
+.status-select {
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #d8ddd4;
+  border-radius: 6px;
+  background: #fbfaf6;
+  color: #294434;
+  font: 500 11px "DM Sans", sans-serif;
+}
+@media (prefers-reduced-motion: reduce) {
+  button { transition: none; }
+}
