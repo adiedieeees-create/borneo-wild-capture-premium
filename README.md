@@ -36,4 +36,4 @@ The public booking page now offers a rolling 30-day calendar. Guests select a st
 Before enabling this flow on the live database, run the complete `supabase/tour-availability.sql` file again in the Supabase SQL Editor. It adds the date-range columns, availability RPC, overlap lock/validation trigger, and legacy-date compatibility. Cancelled bookings release their date range. The admin booking details show the selected date range.
 
 
-Deployment refresh: trigger a clean GitHub Pages workflow run.
+Deployment is published from the main branch through GitHub Actions and GitHub Pages.
