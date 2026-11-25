@@ -121,7 +121,7 @@
       if(!monthsForYear.some(month=>month.getMonth()===viewMonth))viewMonth=monthsForYear[0].getMonth();
 
       const yearOptions=years.map(year=>'<option value="'+year+'"'+(year===viewYear?' selected':'')+'>'+year+'</option>').join("");
-      const monthOptions=monthsForYear.map(month=>'<option value="'+month.getMonth()+'"'+(month.getMonth()===viewMonth?' selected':'')+'>'+month.toLocaleDateString(undefined,{month:"long"})+'</option>').join("");
+      const monthOptions=availableMonths.map(month=>'<option value="'+month.getFullYear()+'-'+month.getMonth()+'"'+(month.getFullYear()===viewYear&&month.getMonth()===viewMonth?' selected':'')+'>'+month.toLocaleDateString(undefined,{month:"long",year:"numeric"})+'</option>').join("");
       const weekdays=Array.from({length:7},(_,i)=>new Date(2024,0,7+i).toLocaleDateString(undefined,{weekday:"short"}));
       const weekdayMarkup=weekdays.map(day=>'<span>'+day+'</span>').join("");
       const firstDay=new Date(viewYear,viewMonth,1);
@@ -145,7 +145,9 @@
       if(completed&&!invalid)note="Selected: "+start+" to "+end+". This range will be checked again when your enquiry is saved.";
       tourCalendar.innerHTML='<div class="tour-calendar-controls"><label><span>Month</span><select data-calendar-month aria-label="Select calendar month">'+monthOptions+'</select></label><label><span>Year</span><select data-calendar-year aria-label="Select calendar year">'+yearOptions+'</select></label></div><p class="tour-calendar-title">Choose your dates · next 30 days</p><div class="tour-calendar-weekdays" aria-hidden="true">'+weekdayMarkup+'</div><div class="tour-calendar-grid">'+cells.join("")+'</div><p class="tour-calendar-note">'+note+' Only dates within the next 30 days can be selected; booked dates remain unavailable.</p>';
       tourCalendar.querySelector("[data-calendar-month]")?.addEventListener("change",event=>{
-        viewMonth=Number(event.target.value);
+        const [selectedYear,selectedMonth]=event.target.value.split("-").map(Number);
+        viewYear=selectedYear;
+        viewMonth=selectedMonth;
         renderCalendar();
       });
       tourCalendar.querySelector("[data-calendar-year]")?.addEventListener("change",event=>{
