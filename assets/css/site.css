@@ -42,3 +42,8 @@
 .page-section:not(.page-section--dark) .detail-card h3{color:var(--forest)}
 .page-section:not(.page-section--dark) .detail-card p{color:#657269}
 .detail-card .action-row{margin-top:22px}
+
+/* Fine-line icon treatment for the four brand pillars. */
+.line-icon svg{width:31px;height:31px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+.info-panel a{color:#8e6a33;text-decoration:underline;text-decoration-color:#c9ad7a;text-underline-offset:3px}
+.info-panel a:hover{color:#5d4525}
