@@ -60,3 +60,10 @@ create policy "Admins can manage FAQs" on public.faqs for all to authenticated u
 -- IMPORTANT: In Supabase Auth settings, disable public sign-ups.
 -- Create the admin account yourself in Authentication > Users > Add user.
 -- Only trusted admin accounts should be allowed to sign in.
+
+-- Explicit SQL privileges are required in addition to RLS policies.
+grant usage on schema public to anon, authenticated;
+grant insert on table public.bookings to anon, authenticated;
+grant select, update, delete on table public.bookings to authenticated;
+grant select on table public.packages, public.faqs to anon, authenticated;
+grant insert, update, delete on table public.packages, public.faqs to authenticated;
