@@ -23,7 +23,7 @@ The booking inquiry form validates the visitor's details, saves the enquiry to t
 The admin dashboard at `admin.html` uses Supabase Auth to manage booking enquiries, expedition packages, FAQs and fixed tour departures. The public booking page displays upcoming departures and remaining shared seats. Run `supabase/tour-availability.sql` in Supabase SQL Editor after the base schema and admin access policy to enable the availability calendar, booking-to-departure links and capacity protection. A booking enquiry reserves seats until it is cancelled or deleted. Booking records include travel date, travel style and message details. Configure the Supabase project using `assets/js/supabase-config.js` and run `supabase/schema.sql` in the Supabase SQL Editor. Keep public sign-ups disabled and create trusted admin accounts manually. Never put a Supabase `service_role` or secret key in frontend files.
 
 ## Deployment
-A GitHub Pages workflow is included at `.github/workflows/pages.yml`. Enable GitHub Pages for this repository and choose **GitHub Actions** as the deployment source. After that, pushes to `main` deploy automatically.
+The static site is published through Cloudflare Pages from the `main` branch. The site has no build step; the repository root is the output directory. GitHub Pages workflow is retained as a fallback.
 
 ## Local preview
 Open `index.html` directly or serve this directory with any static file server. No build step or package installation is required.
