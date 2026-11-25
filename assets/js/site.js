@@ -16,7 +16,47 @@
     dialog.addEventListener("close",()=>{image.removeAttribute("src");if(previousFocus&&previousFocus.isConnected)previousFocus.focus();});
   }
   const form=document.querySelector("#booking-form");
-  if(form){form.addEventListener("submit",event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form);const fields=[["Name",data.get("name")],["Email",data.get("email")],["WhatsApp",data.get("phone")||"Not provided"],["Preferred expedition",data.get("trip")],["Travel date",data.get("date")||"Flexible / to be discussed"],["Number of travellers",data.get("guests")||"Not provided"],["Travel style",data.get("style")||"Not specified"],["Message",data.get("message")||"No additional message"]];const message="Hello Borneo Wild Capture, I would like to enquire about a trip.\n\n"+fields.map(item=>item[0]+": "+item[1]).join("\n");window.open("https://wa.me/6285190836669?text="+encodeURIComponent(message),"_blank","noopener,noreferrer");});}
+  if(form){
+    form.addEventListener("submit",async event=>{
+      event.preventDefault();
+      if(!form.reportValidity())return;
+      const submitButton=form.querySelector('[type="submit"]');
+      const originalButtonText=submitButton.textContent;
+      const data=new FormData(form);
+      const fields=[["Name",data.get("name")],["Email",data.get("email")],["WhatsApp",data.get("phone")||"Not provided"],["Preferred expedition",data.get("trip")],["Travel date",data.get("date")||"Flexible / to be discussed"],["Number of travellers",data.get("guests")||"Not provided"],["Travel style",data.get("style")||"Not specified"],["Message",data.get("message")||"No additional message"]];
+      const message="Hello Borneo Wild Capture, I have submitted a booking enquiry.\\n\\n"+fields.map(item=>item[0]+": "+item[1]).join("\\n");
+      let status=form.querySelector("[data-booking-status]");
+      if(!status){status=document.createElement("p");status.className="booking-note";status.dataset.bookingStatus="";status.setAttribute("role","status");form.append(status);}
+      submitButton.disabled=true;
+      submitButton.textContent="Saving your enquiry…";
+      if(!window.supabase||!window.BWC_SUPABASE_URL||!window.BWC_SUPABASE_ANON_KEY){
+        status.textContent="Booking is temporarily unavailable. Please contact us directly on WhatsApp.";
+        submitButton.disabled=false;submitButton.textContent=originalButtonText;return;
+      }
+      try{
+        const client=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
+        const {error}=await client.from("bookings").insert({
+          name:String(data.get("name")).trim(),
+          email:String(data.get("email")).trim(),
+          phone:String(data.get("phone")||"").trim()||null,
+          trip:String(data.get("trip")),
+          travel_date:String(data.get("date")||"")||null,
+          guests:Number(data.get("guests")),
+          travel_style:String(data.get("style")||"")||null,
+          message:String(data.get("message")||"").trim()||null,
+          status:"new"
+        });
+        if(error)throw error;
+        status.textContent="Your enquiry has been saved. Opening WhatsApp so you can send the details to our team…";
+        submitButton.textContent="Enquiry saved — opening WhatsApp";
+        window.location.href="https://wa.me/6285190836669?text="+encodeURIComponent(message);
+      }catch(error){
+        console.error("Booking submission failed:",error);
+        status.textContent="We couldn't save your enquiry. Please try again, or contact us directly on WhatsApp. Your details have not been submitted.";
+        submitButton.disabled=false;submitButton.textContent=originalButtonText;
+      }
+    });
+  }
   const publicFaqs=document.querySelector("[data-public-faqs]");
   if(publicFaqs&&window.supabase&&window.BWC_SUPABASE_URL&&window.BWC_SUPABASE_ANON_KEY){
     const faqClient=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
