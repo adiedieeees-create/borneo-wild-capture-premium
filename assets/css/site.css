@@ -69,3 +69,16 @@
 .faq-list details p{max-width:740px;margin:0;padding:0 30px 20px 0;color:#66756d;font-size:12px;line-height:1.9}
 .faq-list a{text-decoration:underline;text-underline-offset:3px;color:#8b7044}
 @media(max-width:680px){.comparison-wrap{margin-top:42px;padding-top:38px}.comparison-table th,.comparison-table td{padding:13px 12px}.faq-list summary{font-size:16px}}
+
+/* Fixed departure availability */
+.tour-calendar{margin:22px 0 25px;padding:20px;background:#f0ece2;border:1px solid #e0d8c8}
+.tour-calendar-title{margin:0 0 13px;color:var(--forest);font:500 21px var(--serif)}
+.tour-departure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.tour-departure{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:13px;border:1px solid #d8d1c2;background:#fbf9f4;color:var(--ink);text-align:left;cursor:pointer;transition:border-color .2s,background .2s}
+.tour-departure strong{font:500 20px var(--serif);color:var(--forest)}
+.tour-departure span{font-size:10px;color:#657269}
+.tour-departure small{font-size:10px;font-weight:700;color:#8b7044}
+.tour-departure:hover,.tour-departure.is-selected{border-color:#9b7947;background:#e8dfcd}
+.tour-calendar-note{margin:13px 0 0;color:#68756b;font-size:10px;line-height:1.7}
+.booking-form select{width:100%;min-height:44px;margin-top:7px;padding:11px 12px;border:1px solid #d8d1c2;border-radius:2px;background:#fff;color:#26352c;font:12px var(--sans)}
+@media(max-width:520px){.tour-departure-grid{grid-template-columns:1fr}}
