@@ -21,6 +21,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
+      - name: Verify admin dashboard exists
+        run: test -f admin.html && test -f assets/js/admin.js && test -f assets/js/supabase-config.js
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
