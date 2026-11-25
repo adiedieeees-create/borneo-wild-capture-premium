@@ -17,8 +17,10 @@ A responsive, multi-page static website for Borneo Wild Capture, built around th
 ## Brand assets
 The site uses the original Borneo Wild Capture logo and supplied photographs from the existing `borneo-wild-capture` repository. Source image files are referenced directly at their existing raw GitHub paths; no image edits or generated replacement photographs are used. Keep the original repository and asset paths available.
 
-## Booking
-The inquiry form validates its fields and opens WhatsApp with the visitor's details prefilled. It does not store enquiries in a database or automatically confirm availability. Visitors must press Send in WhatsApp.
+## Booking and admin dashboard
+The booking inquiry form validates the visitor's details, saves the enquiry to the Supabase `bookings` table, and then opens WhatsApp with the enquiry prefilled. Visitors must still press Send in WhatsApp; saving an enquiry does not confirm availability or a reservation.
+
+The admin dashboard at `admin.html` uses Supabase Auth to manage booking enquiries, expedition packages and FAQs. Booking records include travel date, travel style and message details. Configure the Supabase project using `assets/js/supabase-config.js` and run `supabase/schema.sql` in the Supabase SQL Editor. Keep public sign-ups disabled and create trusted admin accounts manually. Never put a Supabase `service_role` or secret key in frontend files.
 
 ## Deployment
 A GitHub Pages workflow is included at `.github/workflows/pages.yml`. Enable GitHub Pages for this repository and choose **GitHub Actions** as the deployment source. After that, pushes to `main` deploy automatically.
