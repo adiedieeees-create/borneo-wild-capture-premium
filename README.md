@@ -34,3 +34,6 @@ Open `index.html` directly or serve this directory with any static file server. 
 The public booking page now offers a rolling 30-day calendar. Guests select a start and end date; any date already occupied by a non-cancelled booking (including legacy fixed-departure bookings) is disabled. Overlapping date ranges are also rejected by a database trigger to prevent simultaneous submissions from double-booking the same dates. Guests can use **Ask for Custom Date** to request unavailable dates directly over WhatsApp; custom pricing is quoted manually by the team.
 
 Before enabling this flow on the live database, run the complete `supabase/tour-availability.sql` file again in the Supabase SQL Editor. It adds the date-range columns, availability RPC, overlap lock/validation trigger, and legacy-date compatibility. Cancelled bookings release their date range. The admin booking details show the selected date range.
+
+
+Deployment refresh: trigger a clean GitHub Pages workflow run.
