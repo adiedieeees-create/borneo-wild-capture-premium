@@ -130,11 +130,7 @@
       }));
       updateCustomLink();
     };
-    const {data,error}=awaitDateRangeAvailability(dateClient);
-    function awaitDateRangeAvailability(client){
-      return client.rpc("get_unavailable_tour_date_ranges");
-    }
-    awaitDateRangeAvailability(dateClient).then(({data,error})=>{
+    dateClient.rpc("get_unavailable_tour_date_ranges").then(({data,error})=>{
       if(error){
         tourCalendar.innerHTML='<p class="faq-load-message">Availability could not be checked. Please contact our team before booking.</p>';
         if(submitButton)submitButton.disabled=true;
