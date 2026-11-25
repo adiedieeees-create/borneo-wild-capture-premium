@@ -131,3 +131,59 @@ for each row execute function public.adjust_tour_departure_capacity();
 
 -- Existing bookings without departure_id remain unchanged. New public bookings
 -- are linked to a published fixed departure by the website form.
+
+
+-- DATE-RANGE BOOKING EXTENSION
+-- Run this file again in Supabase SQL Editor to add exclusive date ranges.
+
+alter table public.bookings
+  add column if not exists start_date date,
+  add column if not exists end_date date;
+
+alter table public.bookings drop constraint if exists bookings_valid_date_range;
+alter table public.bookings add constraint bookings_valid_date_range
+  check ((start_date is null and end_date is null) or
+         (start_date is not null and end_date is not null and end_date >= start_date));
+
+create or replace function public.get_unavailable_tour_date_ranges()
+returns table(start_date date, end_date date)
+language sql stable security definer set search_path = public
+as $$
+  select b.start_date, b.end_date
+  from public.bookings b
+  where b.start_date is not null and b.end_date is not null
+    and b.status <> 'cancelled' and b.end_date >= current_date
+  order by b.start_date;
+$$;
+grant execute on function public.get_unavailable_tour_date_ranges() to anon, authenticated;
+
+create or replace function public.validate_tour_booking_date_range()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  if new.start_date is null or new.end_date is null or new.end_date < new.start_date then
+    raise exception 'Please select a valid start and end date.';
+  end if;
+  if new.start_date < current_date or new.end_date > current_date + 29 then
+    raise exception 'Please choose dates within the next 30 days.';
+  end if;
+  perform pg_advisory_xact_lock(hashtext('borneo-wild-capture-date-range-booking'));
+  if exists (
+    select 1 from public.bookings b
+    where b.id is distinct from new.id
+      and b.start_date is not null and b.end_date is not null
+      and b.status <> 'cancelled'
+      and daterange(b.start_date,b.end_date,'[]') && daterange(new.start_date,new.end_date,'[]')
+  ) then
+    raise exception 'Those dates are already booked. Choose another range or ask for a custom date.';
+  end if;
+  new.travel_date := new.start_date;
+  return new;
+end;
+$$;
+
+drop trigger if exists bookings_validate_date_range on public.bookings;
+create trigger bookings_validate_date_range
+before insert or update of start_date, end_date, status on public.bookings
+for each row when (new.start_date is not null or new.end_date is not null)
+execute function public.validate_tour_booking_date_range();
