@@ -82,3 +82,17 @@
 .tour-calendar-note{margin:13px 0 0;color:#68756b;font-size:10px;line-height:1.7}
 .booking-form select{width:100%;min-height:44px;margin-top:7px;padding:11px 12px;border:1px solid #d8d1c2;border-radius:2px;background:#fff;color:#26352c;font:12px var(--sans)}
 @media(max-width:520px){.tour-departure-grid{grid-template-columns:1fr}}
+
+
+/* Exclusive 30-day booking calendar */
+.tour-calendar{margin:1rem 0 1.5rem;padding:1rem;border:1px solid rgba(201,168,111,.32);border-radius:12px;background:rgba(255,255,255,.025)}
+.tour-calendar-title{margin:0 0 .8rem;font-weight:600;letter-spacing:.04em}
+.tour-calendar-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.4rem}
+.tour-date-day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;min-height:58px;padding:.35rem .15rem;border:1px solid rgba(201,168,111,.42);border-radius:8px;background:transparent;color:inherit;cursor:pointer}
+.tour-date-day strong{font-size:1rem}.tour-date-day span{font-size:.68rem;opacity:.75}
+.tour-date-day:hover:not(:disabled),.tour-date-day.is-selected{background:#c5a574;color:#10271f;border-color:#c5a574}
+.tour-date-day.is-between{background:rgba(197,165,116,.18);border-color:#c5a574}
+.tour-date-day:disabled{opacity:.32;text-decoration:line-through;cursor:not-allowed}
+.tour-calendar-note{font-size:.84rem;line-height:1.55;margin:.85rem 0 0;opacity:.82}
+.custom-date-link{display:inline-flex;margin:0 0 1rem}
+@media(max-width:480px){.tour-calendar-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.tour-date-day{min-height:54px}}
