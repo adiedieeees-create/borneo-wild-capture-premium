@@ -96,3 +96,25 @@
 .tour-calendar-note{font-size:.84rem;line-height:1.55;margin:.85rem 0 0;opacity:.82}
 .custom-date-link{display:inline-flex;margin:0 0 1rem}
 @media(max-width:480px){.tour-calendar-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.tour-date-day{min-height:54px}}
+
+
+/* Month and year selectors for the public booking calendar */
+.tour-calendar-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;margin:0 0 1rem}
+.tour-calendar-controls label{display:flex;flex-direction:column;gap:.32rem;color:var(--forest);font-size:.7rem;font-weight:600;letter-spacing:.04em}
+.tour-calendar-controls select{width:100%;min-height:42px;padding:.55rem .7rem;border:1px solid rgba(201,168,111,.55);border-radius:7px;background:#fbf9f4;color:var(--ink);font:500 .85rem var(--sans)}
+.tour-calendar-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.35rem;margin:0 0 .35rem}
+.tour-calendar-weekdays span{text-align:center;color:#68756b;font-size:.66rem;font-weight:700}
+.tour-calendar-grid{grid-template-columns:repeat(7,minmax(0,1fr))}
+.tour-date-day{min-width:0;min-height:48px}
+.tour-date-day.is-outside-range{opacity:.14;text-decoration:none}
+.tour-date-day.is-booked{opacity:.32;text-decoration:line-through}
+.tour-calendar-empty{min-height:48px}
+@media(max-width:480px){
+  .tour-calendar-controls{gap:.5rem}
+  .tour-calendar-weekdays{gap:.25rem}
+  .tour-calendar-weekdays span{font-size:.6rem}
+  .tour-calendar-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:.25rem}
+  .tour-date-day{min-height:43px;padding:.25rem .05rem;border-radius:6px}
+  .tour-date-day strong{font-size:.9rem}
+  .tour-calendar-empty{min-height:43px}
+}
