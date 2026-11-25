@@ -93,7 +93,13 @@
     const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const plusDays=(date,n)=>{const x=new Date(date);x.setDate(x.getDate()+n);return x;};
     const iso=date=>[date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-");
-    const blocked=[];
+    const lastBookableDay=plusDays(today,29);
+    const todayKey=iso(today),lastBookableKey=iso(lastBookableDay);
+    const availableMonths=[];
+    for(let month=new Date(today.getFullYear(),today.getMonth(),1);month<=new Date(lastBookableDay.getFullYear(),lastBookableDay.getMonth(),1);month=new Date(month.getFullYear(),month.getMonth()+1,1)){
+      availableMonths.push(new Date(month.getFullYear(),month.getMonth(),1));
+    }
+    let viewYear=today.getFullYear(),viewMonth=today.getMonth();
     let unavailable=[];
     let start="",end="";
     const overlaps=(a,b)=>unavailable.some(x=>a<=x.end_date&&b>=x.start_date);
@@ -108,19 +114,46 @@
       const completed=!!(start&&end);
       const invalid=completed&&(end<start||overlaps(start,end));
       if(submitButton)submitButton.disabled=!completed||invalid;
-      const dayButtons=Array.from({length:30},(_,i)=>{
-        const date=plusDays(today,i),key=iso(date);
-        const block=unavailable.some(x=>key>=x.start_date&&key<=x.end_date);
+
+      const years=[...new Set(availableMonths.map(month=>month.getFullYear()))];
+      if(!years.includes(viewYear))viewYear=years[0];
+      const monthsForYear=availableMonths.filter(month=>month.getFullYear()===viewYear);
+      if(!monthsForYear.some(month=>month.getMonth()===viewMonth))viewMonth=monthsForYear[0].getMonth();
+
+      const yearOptions=years.map(year=>'<option value="'+year+'"'+(year===viewYear?' selected':'')+'>'+year+'</option>').join("");
+      const monthOptions=monthsForYear.map(month=>'<option value="'+month.getMonth()+'"'+(month.getMonth()===viewMonth?' selected':'')+'>'+month.toLocaleDateString(undefined,{month:"long"})+'</option>').join("");
+      const weekdays=Array.from({length:7},(_,i)=>new Date(2024,0,7+i).toLocaleDateString(undefined,{weekday:"short"}));
+      const weekdayMarkup=weekdays.map(day=>'<span>'+day+'</span>').join("");
+      const firstDay=new Date(viewYear,viewMonth,1);
+      const daysInMonth=new Date(viewYear,viewMonth+1,0).getDate();
+      const cells=[];
+      for(let i=0;i<firstDay.getDay();i++)cells.push('<span class="tour-calendar-empty" aria-hidden="true"></span>');
+      for(let day=1;day<=daysInMonth;day++){
+        const date=new Date(viewYear,viewMonth,day),key=iso(date);
+        const outsideRange=key<todayKey||key>lastBookableKey;
+        const booked=unavailable.some(x=>key>=x.start_date&&key<=x.end_date);
+        const disabled=outsideRange||booked;
         const selected=key===start||key===end;
         const between=!!(start&&end&&key>start&&key<end);
-        const label=date.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
-        return '<button type="button" class="tour-date-day'+(selected?' is-selected':'')+(between?' is-between':'')+'" data-date="'+key+'" '+(block?'disabled aria-disabled="true" title="Already booked"':'')+'><strong>'+date.getDate()+'</strong><span>'+date.toLocaleDateString(undefined,{weekday:"short"})+'</span></button>';
-      }).join("");
+        const title=booked?"Already booked":(outsideRange?"Outside the 30-day booking window":"Choose this date");
+        const dateLabel=date.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+        cells.push('<button type="button" class="tour-date-day'+(selected?' is-selected':'')+(between?' is-between':'')+(outsideRange?' is-outside-range':'')+(booked?' is-booked':'')+'" data-date="'+key+'" aria-label="'+dateLabel+(booked?', already booked':'')+(outsideRange?', outside booking window':'')+'" '+(disabled?'disabled aria-disabled="true" title="'+title+'"':'')+'><strong>'+day+'</strong></button>');
+      }
       let note="Select your start date, then select your end date. All dates between them are reserved exclusively for your trip.";
       if(start&&!end)note="Start date selected: "+start+". Now choose an available end date.";
       if(invalid)note="That range overlaps an existing booking. Choose another end date or use Ask for Custom Date.";
       if(completed&&!invalid)note="Selected: "+start+" to "+end+". This range will be checked again when your enquiry is saved.";
-      tourCalendar.innerHTML='<p class="tour-calendar-title">Choose your dates · next 30 days</p><div class="tour-calendar-grid">'+dayButtons+'</div><p class="tour-calendar-note">'+note+'</p>';
+      tourCalendar.innerHTML='<div class="tour-calendar-controls"><label><span>Month</span><select data-calendar-month aria-label="Select calendar month">'+monthOptions+'</select></label><label><span>Year</span><select data-calendar-year aria-label="Select calendar year">'+yearOptions+'</select></label></div><p class="tour-calendar-title">Choose your dates · next 30 days</p><div class="tour-calendar-weekdays" aria-hidden="true">'+weekdayMarkup+'</div><div class="tour-calendar-grid">'+cells.join("")+'</div><p class="tour-calendar-note">'+note+' Only dates within the next 30 days can be selected; booked dates remain unavailable.</p>';
+      tourCalendar.querySelector("[data-calendar-month]")?.addEventListener("change",event=>{
+        viewMonth=Number(event.target.value);
+        renderCalendar();
+      });
+      tourCalendar.querySelector("[data-calendar-year]")?.addEventListener("change",event=>{
+        viewYear=Number(event.target.value);
+        const firstMonth=availableMonths.find(month=>month.getFullYear()===viewYear);
+        if(firstMonth)viewMonth=firstMonth.getMonth();
+        renderCalendar();
+      });
       tourCalendar.querySelectorAll("[data-date]:not(:disabled)").forEach(button=>button.addEventListener("click",()=>{
         const chosen=button.dataset.date;
         if(!start||end||chosen<start){start=chosen;end="";}
