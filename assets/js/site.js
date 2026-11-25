@@ -23,7 +23,7 @@
       const submitButton=form.querySelector('[type="submit"]');
       const originalButtonText=submitButton.textContent;
       const data=new FormData(form);
-      const fields=[["Name",data.get("name")],["Email",data.get("email")],["WhatsApp",data.get("phone")||"Not provided"],["Preferred expedition",data.get("trip")],["Fixed departure",form.querySelector('[name="departure_id"]').selectedOptions[0]?.textContent||"Not selected"],["Number of travellers",data.get("guests")||"Not provided"],["Travel style",data.get("style")||"Not specified"],["Message",data.get("message")||"No additional message"]];
+      const fields=[["Name",data.get("name")],["Email",data.get("email")],["WhatsApp",data.get("phone")||"Not provided"],["Preferred expedition",data.get("trip")],["Travel dates",(data.get("start_date")||"Not selected")+" to "+(data.get("end_date")||"Not selected")],["Number of travellers",data.get("guests")||"Not provided"],["Travel style",data.get("style")||"Not specified"],["Message",data.get("message")||"No additional message"]];
       const message="Hello Borneo Wild Capture, I have submitted a booking enquiry.\\n\\n"+fields.map(item=>item[0]+": "+item[1]).join("\\n");
       let status=form.querySelector("[data-booking-status]");
       if(!status){status=document.createElement("p");status.className="booking-note";status.dataset.bookingStatus="";status.setAttribute("role","status");form.append(status);}
@@ -40,8 +40,10 @@
           email:String(data.get("email")).trim(),
           phone:String(data.get("phone")||"").trim()||null,
           trip:String(data.get("trip")),
-          departure_id:String(data.get("departure_id")),
-          travel_date:null,
+          departure_id:null,
+          start_date:String(data.get("start_date")),
+          end_date:String(data.get("end_date")),
+          travel_date:String(data.get("start_date")),
           guests:Number(data.get("guests")),
           travel_style:String(data.get("style")||"")||null,
           message:String(data.get("message")||"").trim()||null,
@@ -81,18 +83,73 @@
 
   const tourCalendar=document.querySelector("[data-tour-calendar]");
   if(tourCalendar&&window.supabase&&window.BWC_SUPABASE_URL&&window.BWC_SUPABASE_ANON_KEY){
-    const departureClient=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
-    const departureSelect=document.querySelector('#booking-form [name="departure_id"]');
-    const safe=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-    const localNow=new Date();const localToday=[localNow.getFullYear(),String(localNow.getMonth()+1).padStart(2,"0"),String(localNow.getDate()).padStart(2,"0")].join("-");
-    departureClient.from("tour_departures").select("id,departure_date,capacity,booked_guests,note").eq("is_open",true).gte("departure_date",localToday).order("departure_date",{ascending:true}).then(({data,error})=>{
-      if(error){tourCalendar.innerHTML='<p class="faq-load-message">Availability is temporarily unavailable. Please contact our team on WhatsApp.</p>';return;}
-      const available=(data||[]).filter(d=>d.capacity-d.booked_guests>0);
-      if(!available.length){tourCalendar.innerHTML='<p class="faq-load-message">No fixed departures are currently open. Please contact our team for upcoming dates.</p>';return;}
-      departureSelect.innerHTML='<option value="" disabled selected>Choose an available departure</option>'+available.map(d=>'<option value="'+safe(d.id)+'">'+safe(new Date(d.departure_date+"T00:00:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"}))+' · '+(d.capacity-d.booked_guests)+' seats left</option>').join("");
-      tourCalendar.innerHTML='<p class="tour-calendar-title">Upcoming departures</p><div class="tour-departure-grid">'+available.map(d=>'<button class="tour-departure" type="button" data-departure="'+safe(d.id)+'"><strong>'+safe(new Date(d.departure_date+"T00:00:00").toLocaleDateString(undefined,{day:"numeric",month:"short"}))+'</strong><span>'+safe(new Date(d.departure_date+"T00:00:00").toLocaleDateString(undefined,{weekday:"long",year:"numeric"}))+'</span><small>'+safe(d.capacity-d.booked_guests)+' seats remaining</small></button>').join("")+'</div><p class="tour-calendar-note">Seat availability is shared across all expedition packages. A place is secured only after the team confirms your booking.</p>';
-      tourCalendar.querySelectorAll("[data-departure]").forEach(button=>button.addEventListener("click",()=>{departureSelect.value=button.dataset.departure;tourCalendar.querySelectorAll(".tour-departure").forEach(x=>x.classList.toggle("is-selected",x===button));departureSelect.scrollIntoView({behavior:"smooth",block:"center"});}));
-      departureSelect.addEventListener("change",()=>tourCalendar.querySelectorAll(".tour-departure").forEach(x=>x.classList.toggle("is-selected",x.dataset.departure===departureSelect.value)));
+    const dateClient=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
+    const dateForm=document.querySelector("#booking-form");
+    const startInput=dateForm?.querySelector('[name="start_date"]');
+    const endInput=dateForm?.querySelector('[name="end_date"]');
+    const submitButton=dateForm?.querySelector('[type="submit"]');
+    const customLink=dateForm?.querySelector("[data-custom-date]");
+    const customField=dateForm?.querySelector('[name="custom_dates"]');
+    const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const plusDays=(date,n)=>{const x=new Date(date);x.setDate(x.getDate()+n);return x;};
+    const iso=date=>[date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-");
+    const blocked=[];
+    let unavailable=[];
+    let start="",end="";
+    const overlaps=(a,b)=>unavailable.some(x=>a<=x.end_date&&b>=x.start_date);
+    const updateCustomLink=()=>{
+      const requested=customField?.value?.trim()||"not specified";
+      const picked=start?(start+(end?" to "+end:"")):"not selected";
+      if(customLink)customLink.href="https://wa.me/6285190836669?text="+encodeURIComponent("Hello Borneo Wild Capture, I would like to request a custom date. Requested dates: "+(requested!=="not specified"?requested:picked)+". I understand these dates may need special arrangement and pricing. Please let me know the availability and custom rate.");
+    };
+    const renderCalendar=()=>{
+      if(startInput)startInput.value=start;
+      if(endInput)endInput.value=end;
+      const completed=!!(start&&end);
+      const invalid=completed&&(end<start||overlaps(start,end));
+      if(submitButton)submitButton.disabled=!completed||invalid;
+      const dayButtons=Array.from({length:30},(_,i)=>{
+        const date=plusDays(today,i),key=iso(date);
+        const block=unavailable.some(x=>key>=x.start_date&&key<=x.end_date);
+        const selected=key===start||key===end;
+        const between=!!(start&&end&&key>start&&key<end);
+        const label=date.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
+        return '<button type="button" class="tour-date-day'+(selected?' is-selected':'')+(between?' is-between':'')+'" data-date="'+key+'" '+(block?'disabled aria-disabled="true" title="Already booked"':'')+'><strong>'+date.getDate()+'</strong><span>'+date.toLocaleDateString(undefined,{weekday:"short"})+'</span></button>';
+      }).join("");
+      let note="Select your start date, then select your end date. All dates between them are reserved exclusively for your trip.";
+      if(start&&!end)note="Start date selected: "+start+". Now choose an available end date.";
+      if(invalid)note="That range overlaps an existing booking. Choose another end date or use Ask for Custom Date.";
+      if(completed&&!invalid)note="Selected: "+start+" to "+end+". This range will be checked again when your enquiry is saved.";
+      tourCalendar.innerHTML='<p class="tour-calendar-title">Choose your dates · next 30 days</p><div class="tour-calendar-grid">'+dayButtons+'</div><p class="tour-calendar-note">'+note+'</p>';
+      tourCalendar.querySelectorAll("[data-date]:not(:disabled)").forEach(button=>button.addEventListener("click",()=>{
+        const chosen=button.dataset.date;
+        if(!start||end||chosen<start){start=chosen;end="";}
+        else if(overlaps(start,chosen)){end="";}
+        else{end=chosen;}
+        renderCalendar();updateCustomLink();
+      }));
+      updateCustomLink();
+    };
+    const {data,error}=awaitDateRangeAvailability(dateClient);
+    function awaitDateRangeAvailability(client){
+      return client.rpc("get_unavailable_tour_date_ranges");
+    }
+    awaitDateRangeAvailability(dateClient).then(({data,error})=>{
+      if(error){
+        tourCalendar.innerHTML='<p class="faq-load-message">Availability could not be checked. Please contact our team before booking.</p>';
+        if(submitButton)submitButton.disabled=true;
+        return;
+      }
+      unavailable=(data||[]).filter(x=>x.start_date&&x.end_date);
+      renderCalendar();
+    });
+    customField?.addEventListener("input",updateCustomLink);
+    dateForm?.addEventListener("submit",event=>{
+      if(!start||!end||end<start||overlaps(start,end)){
+        event.preventDefault();
+        renderCalendar();
+        tourCalendar.scrollIntoView({behavior:"smooth",block:"center"});
+      }
     });
   }
   const year=document.querySelector("[data-current-year]");if(year)year.textContent=String(new Date().getFullYear());
