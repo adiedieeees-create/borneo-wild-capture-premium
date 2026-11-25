@@ -23,7 +23,7 @@
       const submitButton=form.querySelector('[type="submit"]');
       const originalButtonText=submitButton.textContent;
       const data=new FormData(form);
-      const fields=[["Name",data.get("name")],["Email",data.get("email")],["WhatsApp",data.get("phone")||"Not provided"],["Preferred expedition",data.get("trip")],["Travel date",data.get("date")||"Flexible / to be discussed"],["Number of travellers",data.get("guests")||"Not provided"],["Travel style",data.get("style")||"Not specified"],["Message",data.get("message")||"No additional message"]];
+      const fields=[["Name",data.get("name")],["Email",data.get("email")],["WhatsApp",data.get("phone")||"Not provided"],["Preferred expedition",data.get("trip")],["Fixed departure",form.querySelector('[name="departure_id"]').selectedOptions[0]?.textContent||"Not selected"],["Number of travellers",data.get("guests")||"Not provided"],["Travel style",data.get("style")||"Not specified"],["Message",data.get("message")||"No additional message"]];
       const message="Hello Borneo Wild Capture, I have submitted a booking enquiry.\\n\\n"+fields.map(item=>item[0]+": "+item[1]).join("\\n");
       let status=form.querySelector("[data-booking-status]");
       if(!status){status=document.createElement("p");status.className="booking-note";status.dataset.bookingStatus="";status.setAttribute("role","status");form.append(status);}
