@@ -14,7 +14,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deploy_retry_1.outputs.page_url || steps.deploy_retry_2.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,6 +27,34 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-      - name: Deploy
+      - name: Deploy (attempt 1)
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Wait before retry 1
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 20
+      - name: Deploy (attempt 2)
+        id: deploy_retry_1
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Wait before retry 2
+        if: steps.deployment.outcome == 'failure' && steps.deploy_retry_1.outcome == 'failure'
+        run: sleep 40
+      - name: Deploy (attempt 3)
+        id: deploy_retry_2
+        if: steps.deployment.outcome == 'failure' && steps.deploy_retry_1.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Confirm deployment succeeded
+        if: always()
+        env:
+          DEPLOY_1: ${{ steps.deployment.outcome }}
+          DEPLOY_2: ${{ steps.deploy_retry_1.outcome }}
+          DEPLOY_3: ${{ steps.deploy_retry_2.outcome }}
+        run: |
+          if [[ "$DEPLOY_1" != "success" && "$DEPLOY_2" != "success" && "$DEPLOY_3" != "success" ]]; then
+            echo "All three GitHub Pages deployment attempts failed."
+            exit 1
+          fi
