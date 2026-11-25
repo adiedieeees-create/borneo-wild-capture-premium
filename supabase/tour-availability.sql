@@ -74,29 +74,59 @@ security definer
 set search_path = public
 as $$
 begin
-  if tg_op = 'INSERT' and new.departure_id is not null then
+  if tg_op = 'INSERT' and new.departure_id is not null and new.status <> 'cancelled' then
     update public.tour_departures
       set booked_guests = booked_guests + new.guests
       where id = new.departure_id;
     return new;
-  elsif tg_op = 'DELETE' and old.departure_id is not null then
+  elsif tg_op = 'DELETE' and old.departure_id is not null and old.status <> 'cancelled' then
     update public.tour_departures
       set booked_guests = greatest(0, booked_guests - old.guests)
       where id = old.departure_id;
     return old;
+  elsif tg_op = 'UPDATE' and new.departure_id is not null and old.departure_id = new.departure_id then
+    if old.status <> 'cancelled' and new.status = 'cancelled' then
+      update public.tour_departures
+        set booked_guests = greatest(0, booked_guests - old.guests)
+        where id = old.departure_id;
+    elsif old.status = 'cancelled' and new.status <> 'cancelled' then
+      update public.tour_departures
+        set booked_guests = booked_guests + new.guests
+        where id = new.departure_id;
+    end if;
+    return new;
   end if;
   return coalesce(new, old);
 end;
 $$;
 
-drop trigger if exists bookings_reserve_tour_departure on public.bookings;
-create trigger bookings_reserve_tour_departure
-before insert on public.bookings
-for each row execute function public.reserve_tour_departure();
+create or replace function public.validate_reopen_tour_departure()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  d public.tour_departures%rowtype;
+begin
+  if old.status = 'cancelled' and new.status <> 'cancelled' and new.departure_id is not null then
+    select * into d from public.tour_departures where id = new.departure_id for update;
+    if not found or not d.is_open or d.booked_guests + new.guests > d.capacity then
+      raise exception 'This departure does not have enough seats to restore this booking.';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists bookings_validate_reopen_tour_departure on public.bookings;
+create trigger bookings_validate_reopen_tour_departure
+before update of status on public.bookings
+for each row execute function public.validate_reopen_tour_departure();
 
 drop trigger if exists bookings_adjust_tour_departure_capacity on public.bookings;
 create trigger bookings_adjust_tour_departure_capacity
-after insert or delete on public.bookings
+after insert or update of status or delete on public.bookings
 for each row execute function public.adjust_tour_departure_capacity();
 
 -- Existing bookings without departure_id remain unchanged. New public bookings
