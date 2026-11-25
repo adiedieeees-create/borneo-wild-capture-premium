@@ -5,7 +5,7 @@
 drop policy if exists "Public can submit booking enquiries" on public.bookings;
 create policy "Public can submit booking enquiries"
 on public.bookings for insert to anon, authenticated
-with check (true);
+with check (status = 'new');
 
 drop policy if exists "Admins can read bookings" on public.bookings;
 create policy "Admins can read bookings"
