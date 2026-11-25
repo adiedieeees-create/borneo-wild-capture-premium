@@ -187,3 +187,75 @@ create trigger bookings_validate_date_range
 before insert or update of start_date, end_date, status on public.bookings
 for each row when (new.start_date is not null or new.end_date is not null)
 execute function public.validate_tour_booking_date_range();
+
+
+-- Final safety refinements: include legacy fixed dates and allow cancellation cleanly.
+create or replace function public.get_unavailable_tour_date_ranges()
+returns table(start_date date, end_date date)
+language sql stable security definer set search_path = public
+as $$
+  select coalesce(b.start_date,b.travel_date),
+         coalesce(b.end_date,b.start_date,b.travel_date)
+  from public.bookings b
+  where coalesce(b.start_date,b.travel_date) is not null
+    and b.status <> 'cancelled'
+    and coalesce(b.end_date,b.start_date,b.travel_date) >= current_date
+  order by coalesce(b.start_date,b.travel_date);
+$$;
+
+create or replace function public.validate_tour_booking_date_range()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  if new.status = 'cancelled' then
+    return new;
+  end if;
+  if new.start_date is null or new.end_date is null or new.end_date < new.start_date then
+    raise exception 'Please select a valid start and end date.';
+  end if;
+  if new.start_date < current_date or new.end_date > current_date + 29 then
+    raise exception 'Please choose dates within the next 30 days.';
+  end if;
+  perform pg_advisory_xact_lock(hashtext('borneo-wild-capture-date-range-booking'));
+  if exists (
+    select 1 from public.bookings b
+    where b.id is distinct from new.id
+      and coalesce(b.start_date,b.travel_date) is not null
+      and b.status <> 'cancelled'
+      and daterange(coalesce(b.start_date,b.travel_date),coalesce(b.end_date,b.start_date,b.travel_date),'[]')
+          && daterange(new.start_date,new.end_date,'[]')
+  ) then
+    raise exception 'Those dates are already booked. Choose another range or ask for a custom date.';
+  end if;
+  new.travel_date := new.start_date;
+  return new;
+end;
+$$;
+
+create or replace function public.adjust_tour_departure_capacity()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  if tg_op = 'INSERT' then
+    if new.departure_id is not null and new.status <> 'cancelled' then
+      update public.tour_departures set booked_guests = booked_guests + new.guests where id = new.departure_id;
+    end if;
+    return null;
+  elsif tg_op = 'DELETE' then
+    if old.departure_id is not null and old.status <> 'cancelled' then
+      update public.tour_departures set booked_guests = greatest(0,booked_guests-old.guests) where id = old.departure_id;
+    end if;
+    return null;
+  elsif tg_op = 'UPDATE' then
+    if new.departure_id is not null and old.departure_id = new.departure_id then
+      if old.status <> 'cancelled' and new.status = 'cancelled' then
+        update public.tour_departures set booked_guests = greatest(0,booked_guests-old.guests) where id = old.departure_id;
+      elsif old.status = 'cancelled' and new.status <> 'cancelled' then
+        update public.tour_departures set booked_guests = booked_guests+new.guests where id = new.departure_id;
+      end if;
+    end if;
+    return null;
+  end if;
+  return null;
+end;
+$$;
