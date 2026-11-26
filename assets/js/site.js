@@ -179,7 +179,17 @@
     packageClient.from("packages").select("name,duration,price_note,description").eq("is_active",true).order("created_at",{ascending:true}).then(({data,error})=>{
       if(error){publicPackages.innerHTML='<p class="faq-load-message">Expedition packages are temporarily unavailable. Please contact our team.</p>';return;}
       if(!data||!data.length){publicPackages.innerHTML='<p class="faq-load-message">Expedition packages will be published here soon.</p>';return;}
-      publicPackages.innerHTML=data.map(item=>'<article class="detail-card"><p class="kicker">'+escapePackage(item.duration)+'</p><h3>'+escapePackage(item.name)+'</h3><p>'+escapePackage(item.description)+'</p><p class="package-price-note">'+escapePackage(item.price_note)+'</p><div class="action-row"><a class="button button--gold" href="booking.html">Enquire about this trip ↗</a></div></article>').join("");
+      publicPackages.innerHTML=data.map(item=>{
+        const duration=String(item.duration||"").toLowerCase();
+        const name=String(item.name||"").toLowerCase();
+        const tripKey=(duration.includes("3")&&duration.includes("2"))||name.includes("essential")?"essential-escape"
+          :(duration.includes("4")&&duration.includes("3"))||name.includes("experience")?"wildlife-experience"
+          :(duration.includes("5")&&duration.includes("4"))||name.includes("moments")?"wildlife-moments":"";
+        const bookingUrl="booking.html?source=expeditions"+(tripKey?"&trip="+tripKey:"");
+        const message="Hello Borneo Wild Capture, I’m interested in the "+String(item.name||"")+" ("+String(item.duration||"")+") expedition. Could you share availability and a tailored quotation?";
+        const whatsappUrl="https://wa.me/6285190836669?text="+encodeURIComponent(message);
+        return '<article class="detail-card"><p class="kicker">'+escapePackage(item.duration)+'</p><h3>'+escapePackage(item.name)+'</h3><p>'+escapePackage(item.description)+'</p><p class="package-price-note">'+escapePackage(item.price_note)+'</p><div class="action-row expedition-cta-row"><a class="button button--gold" href="'+bookingUrl+'">Check Availability ↗</a><a class="button button--outline" href="'+whatsappUrl+'" target="_blank" rel="noopener">Private Quote ↗</a></div></article>';
+      }).join("");
     });
   }
 
