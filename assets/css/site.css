@@ -349,3 +349,50 @@ body:not(.home-page) {
 @media (max-width: 760px) {
   body:not(.home-page) { padding-top: 70px; }
 }
+
+
+/* Mobile viewport containment: prevent the homepage content from rendering as a narrow left column. */
+@media (max-width: 760px) {
+  html, body.home-page {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  body.home-page > main {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+  }
+  body.home-page > main > section {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  body.home-page .home-hero,
+  body.home-page .promise-strip,
+  body.home-page .wildlife-showcase,
+  body.home-page .river-story,
+  body.home-page .closing-cta {
+    width: 100%;
+    max-width: none;
+  }
+  body.home-page .container,
+  body.home-page .hero-copy,
+  body.home-page .river-story-content {
+    width: 90%;
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  body.home-page .header-inner {
+    width: 90%;
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
