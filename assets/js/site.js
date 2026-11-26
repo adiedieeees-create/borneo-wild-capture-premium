@@ -173,24 +173,52 @@
     });
   }
   const publicPackages=document.querySelector("[data-public-packages]");
-  if(publicPackages&&window.supabase&&window.BWC_SUPABASE_URL&&window.BWC_SUPABASE_ANON_KEY){
-    const packageClient=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
+  if(publicPackages){
     const escapePackage=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-    packageClient.from("packages").select("name,duration,price_note,description").eq("is_active",true).order("created_at",{ascending:true}).then(({data,error})=>{
-      if(error){publicPackages.innerHTML='<p class="faq-load-message">Expedition packages are temporarily unavailable. Please contact our team.</p>';return;}
-      if(!data||!data.length){publicPackages.innerHTML='<p class="faq-load-message">Expedition packages will be published here soon.</p>';return;}
-      publicPackages.innerHTML=data.map(item=>{
+    const packageFallback=[
+      {name:"Essential Escape",duration:"3 days / 2 nights",description:"A short introduction to Tanjung Puting, with time on the river and guided rainforest experiences.",price_note:"Tailored quotation based on dates and group size.",tripKey:"essential-escape"},
+      {name:"Wildlife Experience",duration:"4 days / 3 nights",description:"A balanced rainforest journey with more time to explore the river and wildlife habitats.",price_note:"Tailored quotation based on dates and group size.",tripKey:"wildlife-experience"},
+      {name:"Wildlife Moments",duration:"5 days / 4 nights",description:"An unhurried expedition for a deeper experience of the rainforest and its waterways.",price_note:"Tailored quotation based on dates and group size.",tripKey:"wildlife-moments"}
+    ];
+    const renderPackages=items=>{
+      publicPackages.innerHTML=items.map(item=>{
         const duration=String(item.duration||"").toLowerCase();
         const name=String(item.name||"").toLowerCase();
-        const tripKey=(duration.includes("3")&&duration.includes("2"))||name.includes("essential")?"essential-escape"
-          :(duration.includes("4")&&duration.includes("3"))||name.includes("experience")?"wildlife-experience"
-          :(duration.includes("5")&&duration.includes("4"))||name.includes("moments")?"wildlife-moments":"";
+        const tripKey=item.tripKey||(((duration.includes("3")&&duration.includes("2"))||name.includes("essential"))?"essential-escape"
+          :(((duration.includes("4")&&duration.includes("3"))||name.includes("experience"))?"wildlife-experience"
+          :(((duration.includes("5")&&duration.includes("4"))||name.includes("moments"))?"wildlife-moments":"")));
         const bookingUrl="booking.html?source=expeditions"+(tripKey?"&trip="+tripKey:"");
-        const message="Hello Borneo Wild Capture, I’m interested in the "+String(item.name||"")+" ("+String(item.duration||"")+") expedition. Could you share availability and a tailored quotation?";
+        const message="Hello Borneo Wild Capture, I’m interested in the "+String(item.name||"")+" ("+String(item.duration||"")+" ) expedition. Could you share availability and a tailored quotation?";
         const whatsappUrl="https://wa.me/6285190836669?text="+encodeURIComponent(message);
         return '<article class="detail-card"><p class="kicker">'+escapePackage(item.duration)+'</p><h3>'+escapePackage(item.name)+'</h3><p>'+escapePackage(item.description)+'</p><p class="package-price-note">'+escapePackage(item.price_note)+'</p><div class="action-row expedition-cta-row"><a class="button button--gold" href="'+bookingUrl+'">Check Availability ↗</a><a class="button button--outline" href="'+whatsappUrl+'" target="_blank" rel="noopener">Private Quote ↗</a></div></article>';
       }).join("");
-    });
+    };
+    const showFallback=()=>{
+      renderPackages(packageFallback);
+      const note=document.createElement("p");
+      note.className="faq-load-message";
+      note.textContent="Showing sample expedition options. Contact our team to confirm current package details.";
+      publicPackages.append(note);
+    };
+    if(!window.supabase||!window.BWC_SUPABASE_URL||!window.BWC_SUPABASE_ANON_KEY){
+      showFallback();
+    }else{
+      try{
+        const packageClient=window.supabase.createClient(window.BWC_SUPABASE_URL,window.BWC_SUPABASE_ANON_KEY);
+        const request=packageClient.from("packages").select("name,duration,price_note,description").eq("is_active",true).order("created_at",{ascending:true});
+        const timeout=new Promise((_,reject)=>window.setTimeout(()=>reject(new Error("Package request timed out")),8000));
+        Promise.race([request,timeout]).then(({data,error})=>{
+          if(error||!data||!data.length){showFallback();return;}
+          renderPackages(data);
+        }).catch(error=>{
+          console.error("Expedition package loading failed:",error);
+          showFallback();
+        });
+      }catch(error){
+        console.error("Expedition package setup failed:",error);
+        showFallback();
+      }
+    }
   }
 
   const tourCalendar = document.querySelector("[data-tour-calendar]");
