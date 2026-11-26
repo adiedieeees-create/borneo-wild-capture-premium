@@ -450,10 +450,12 @@ body:not(.home-page) {
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 72% 48%, rgba(44, 93, 66, .30), transparent 42%),
-    linear-gradient(135deg, #0a2b20 0%, #0d3526 54%, #09271e 100%);
+    linear-gradient(180deg, rgba(5, 25, 17, .48), rgba(5, 25, 17, .78)),
+    url("../file_00000000c2d88211aa2c49e0c4ccc373.png") center 48% / cover no-repeat,
+    #09271e;
 }
 .preparation-ornament {
+  display: none;
   position: absolute;
   z-index: 0;
   inset: 0;
