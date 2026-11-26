@@ -324,3 +324,28 @@
 @media (prefers-reduced-motion: reduce) {
   .home-hero, .expedition-card, .wildlife-tile { scroll-behavior: auto; }
 }
+
+
+/* Keep the shared site header visible while scrolling on every public page. */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.site-header--over-hero {
+  position: fixed;
+  inset: 0 0 auto;
+}
+/* Non-home pages need room for the fixed header; the homepage header overlays its hero. */
+body:not(:has(.home-hero)) {
+  padding-top: 88px;
+}
+@media (max-width: 1000px) {
+  body:not(:has(.home-hero)) { padding-top: 76px; }
+}
+@media (max-width: 760px) {
+  body:not(:has(.home-hero)) { padding-top: 70px; }
+}
