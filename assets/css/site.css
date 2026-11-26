@@ -396,3 +396,49 @@ body:not(.home-page) {
     margin-right: auto;
   }
 }
+
+
+/* Compact mobile header — shared across every public page. */
+@media (max-width: 760px) {
+  .site-header .header-inner {
+    min-height: 62px;
+    gap: 12px;
+  }
+  .site-header .brand img {
+    width: 104px;
+    height: 54px;
+  }
+  .site-header .header-inner .menu-toggle {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    padding: 7px;
+  }
+  .site-header .header-inner .menu-toggle span {
+    width: 18px;
+    margin: 4px auto;
+  }
+  .site-header .primary-nav {
+    top: 62px;
+    max-height: calc(100svh - 62px);
+  }
+}
+
+@media (max-width: 420px) {
+  .site-header .header-inner {
+    min-height: 58px;
+  }
+  .site-header .brand img {
+    width: 98px;
+    height: 50px;
+  }
+  .site-header .header-inner .menu-toggle {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+  }
+  .site-header .primary-nav {
+    top: 58px;
+    max-height: calc(100svh - 58px);
+  }
+}
