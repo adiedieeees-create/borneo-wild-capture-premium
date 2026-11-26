@@ -120,46 +120,207 @@
 }
 
 
-/* Responsive layout safeguard for compact screens and browsers using desktop-site mode. */
+/* Final responsive layout: retain the desktop visual language while giving phones a deliberate layout. */
+@media (min-width: 1001px) {
+  /* button-system.css displays menu buttons globally; keep the toggle mobile/tablet-only. */
+  .site-header .header-inner .menu-toggle { display: none; }
+}
+
 @media (max-width: 1000px) {
-  .header-inner { min-height: 76px; width: 90vw; gap: 18px; }
-  .brand img { width: 132px; height: 68px; }
-  .menu-toggle { display: block; flex: 0 0 44px; }
+  .header-inner {
+    width: 90vw;
+    min-height: 76px;
+    gap: 16px;
+  }
+  .brand img { width: 128px; height: 66px; }
+  .site-header .header-inner .menu-toggle {
+    display: flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+  }
   .primary-nav {
-    position: absolute; top: 76px; left: 0; right: 0;
-    display: none; flex-direction: column; align-items: stretch; gap: 0;
-    padding: 12px 5vw 22px; background: #08251b;
-    border-top: 1px solid #ffffff20; box-shadow: 0 18px 30px #0004;
+    position: absolute;
+    z-index: 30;
+    top: 76px;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    max-height: calc(100svh - 76px);
+    overflow-y: auto;
+    padding: 12px 5vw 22px;
+    border-top: 1px solid #ffffff20;
+    background: #08251b;
+    box-shadow: 0 18px 30px #0004;
     font-size: 12px;
   }
   .primary-nav.is-open { display: flex; }
-  .primary-nav > a:not(.nav-book) { padding: 13px 4px; border-bottom: 1px solid #ffffff18; font-size: 12px; }
-  .primary-nav > a:not(.nav-book):after { display: none; }
+  .primary-nav > a:not(.nav-book) {
+    padding: 13px 4px;
+    border-bottom: 1px solid #ffffff18;
+    font-size: 12px;
+  }
+  .primary-nav > a:not(.nav-book)::after { display: none; }
   .nav-book { justify-content: center; margin-top: 13px; }
-  .home-hero { min-height: 690px; height: 88svh; max-height: 850px; }
-  .hero-copy { padding-top: 92px; }
-  .hero-copy h1 { max-width: 680px; font-size: clamp(52px, 7vw, 78px); }
-  .hero-description { max-width: 500px; font-size: 15px; line-height: 1.8; }
+
+  .home-hero {
+    min-height: 680px;
+    height: min(88svh, 830px);
+    max-height: 830px;
+  }
+  .hero-copy { padding-top: 88px; }
+  .hero-copy h1 { max-width: 680px; font-size: clamp(48px, 6.2vw, 70px); }
+  .hero-description { max-width: 460px; font-size: 14px; line-height: 1.8; }
   .hero-image { object-position: 64% center; }
   .hero-location { display: none; }
-  .promise-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px 0; }
-  .promise-item { min-height: 88px; padding: 12px 14px; border-right: 0; border-bottom: 1px solid rgba(21,44,34,.13); }
-  .promise-item:first-child { padding-left: 14px; }
+
+  .promise-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px 0;
+  }
+  .promise-item {
+    min-width: 0;
+    min-height: 88px;
+    padding: 12px 13px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(21,44,34,.13);
+  }
+  .promise-item:first-child { padding-left: 13px; }
   .promise-item:nth-child(odd) { border-right: 1px solid rgba(21,44,34,.13); }
   .promise-item:nth-last-child(-n+2) { border-bottom: 0; }
-  .promise-item h2 { font-size: 15px; }
-  .promise-item p { max-width: 260px; font-size: 10px; }
-  .section { padding: 78px 0; }
-  .section-intro--split { gap: 28px; }
+  .promise-item h2 { font-size: 14px; }
+  .promise-item p { max-width: 250px; font-size: 10px; }
+
+  .section { padding: 76px 0; }
+  .section-intro--split {
+    display: grid;
+    align-items: start;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
   .expedition-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .expedition-card { min-height: 330px; }
+  .expedition-card { min-height: 320px; }
   .expedition-card:nth-child(3) { grid-column: 1 / -1; min-height: 300px; }
+
   .wildlife-layout { grid-template-columns: 1fr; gap: 28px; }
-  .wildlife-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .wildlife-heading { display: block; }
+  .wildlife-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .wildlife-tile { height: 210px; }
+
+  .culture-preview-grid { grid-template-columns: 1fr 1fr; gap: 5%; }
   .footer-main { gap: 30px 24px; }
 }
+
 @media (max-width: 760px) {
-  .expedition-cards { grid-template-columns: 1fr; }
-  .expedition-card:nth-child(3) { grid-column: auto; min-height: 350px; }
+  :root { --container: min(90vw, 650px); }
+
+  .header-inner { min-height: 70px; }
+  .brand img { width: 116px; height: 60px; }
+  .site-header .header-inner .menu-toggle { width: 42px; height: 42px; }
+
+  .primary-nav { top: 70px; max-height: calc(100svh - 70px); }
+  .home-hero {
+    min-height: 660px;
+    height: min(92svh, 820px);
+    max-height: 820px;
+  }
+  .hero-copy { padding-top: 76px; }
+  .hero-copy h1 {
+    max-width: 100%;
+    font-size: clamp(42px, 10.5vw, 58px);
+    line-height: .99;
+  }
+  .hero-description { max-width: 370px; margin: 19px 0 24px; font-size: 13px; }
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    width: min(100%, 315px);
+    gap: 10px;
+  }
+  .hero-actions .button { width: 100%; justify-content: center; }
+  .hero-index { left: 5vw; bottom: 20px; gap: 15px; }
+  .scroll-cue { right: 5vw; bottom: 18px; }
+
+  .promise-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .promise-item { gap: 8px; padding: 11px 8px; }
+  .promise-item:first-child { padding-left: 8px; }
+  .promise-item h2 { font-size: 12px; line-height: 1.25; }
+  .promise-item p { font-size: 9px; line-height: 1.45; }
+  .line-icon { flex: 0 0 29px; width: 29px; height: 32px; }
+  .line-icon svg { width: 27px; height: 27px; }
+
+  .section { padding: 62px 0; }
+  .section-intro h2,
+  .culture-copy h2 { font-size: clamp(37px, 9.4vw, 44px); }
+  .section-intro-side p { font-size: 12px; }
+  .expedition-cards { grid-template-columns: 1fr; gap: 13px; }
+  .expedition-card,
+  .expedition-card:nth-child(3) { grid-column: auto; min-height: 315px; }
+  .card-content { padding: 23px 20px 20px; }
+  .card-content strong { font-size: 25px; }
+
+  .wildlife-showcase { padding: 62px 0; }
+  .wildlife-heading h2 { font-size: 42px; }
+  .wildlife-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .wildlife-tile { height: 178px; }
+  .wildlife-tile span { left: 10px; bottom: 10px; font-size: 8px; }
+
+  .culture-preview-grid { grid-template-columns: 1fr; gap: 25px; }
+  .culture-photo { min-height: 290px; }
+  .culture-copy > p:not(.eyebrow) { font-size: 12px; }
+
+  .river-story { min-height: 470px; }
+  .river-story-content { padding: 66px 0; }
+  .river-story h2 { font-size: clamp(37px, 9.4vw, 46px); }
+  .river-story-content > p:not(.eyebrow) { font-size: 12px; }
+  .closing-cta { min-height: 330px; }
+  .closing-content { padding: 58px 0; }
+  .closing-content h2 { font-size: clamp(37px, 9.4vw, 46px); }
+
+  .footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 18px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-bottom { flex-direction: column; gap: 8px; }
+
+  .page-hero { min-height: 360px; }
+  .page-hero-inner { padding: 56px 0 44px; }
+  .page-hero h1, .detail-hero h1 { font-size: clamp(40px, 10vw, 52px); }
+  .page-section { padding: 56px 0; }
+  .detail-grid, .day-grid, .route-steps { grid-template-columns: 1fr; }
+  .info-grid, .story-layout, .booking-layout { grid-template-columns: 1fr; gap: 24px; }
+  .gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 165px; gap: 9px; }
+  .gallery-item:nth-child(3) { grid-column: auto; }
+  .gallery-item:nth-child(1), .gallery-item:nth-child(6) { grid-row: auto; }
+  .story-image { min-height: 300px; }
+  .story-photos { gap: 9px; }
+  .story-photos img { height: 170px; }
+  .culture-photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .culture-photo-grid img { height: 175px; }
+  .booking-card { padding: 22px 17px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .hero-copy h1 { font-size: clamp(40px, 10vw, 48px); }
+  .hero-description { font-size: 12px; }
+  .hero-actions { width: 100%; }
+  .wildlife-tile { height: 158px; }
+  .promise-item { gap: 6px; }
+  .promise-item h2 { font-size: 11px; }
+  .promise-item p { font-size: 8.5px; }
+  .line-icon { flex-basis: 26px; width: 26px; }
+  .footer-main { gap: 24px 12px; }
+  .booking-card { padding: 20px 14px; }
+  .tour-calendar { padding: 12px; }
+  .tour-calendar-weekdays { gap: 2px; }
+  .tour-calendar-grid { gap: 3px; }
+  .tour-date-day { min-height: 39px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero, .expedition-card, .wildlife-tile { scroll-behavior: auto; }
 }
